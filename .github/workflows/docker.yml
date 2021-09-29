@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/ficoos/ewpe-smart-mqtt
+  IMAGE_NAME: ficoos/ewpe-smart-mqtt
 
 
 jobs:

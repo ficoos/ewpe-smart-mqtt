@@ -46,6 +46,31 @@ mqttClient.on('connect', () => {
     const getDeviceStatus = async (deviceId) => {
         const deviceStatus = await deviceManager.getDeviceStatus(deviceId);
         mqttClient.publish(`${mqttBaseTopic}/${deviceId}/status`, JSON.stringify(deviceStatus));
+        if (deviceStatus["Pow"] == 0) {
+            hoassMode = "off"
+        } else {
+            switch(deviceStatus["Mod"]) {
+            case 0:
+                hoassMode = "auto"
+                break
+            case 1:
+                hoassMode = "cool"
+                break
+            case 2:
+                hoassMode = "dry"
+                break
+            case 4:
+                hoassMode = "fan_only"
+                break
+            case 5:
+                hoassMode = "heat"
+                break
+            }
+        }
+
+        mqttClient.publish(`${mqttBaseTopic}/${deviceId}/hoass/mode/status`, hoassMode)
+        mqttClient.publish(`${mqttBaseTopic}/${deviceId}/hoass/temp/status`, `${deviceStatus.SetTem}.0`)
+        mqttClient.publish(`${mqttBaseTopic}/${deviceId}/hoass/temp/sensor`, `${deviceStatus.TemSen}.0`)
     }
 
     mqttClient.publish(`${mqttBaseTopic}/bridge/state`, 'online');
@@ -69,6 +94,34 @@ mqttClient.on('connect', () => {
                 }
 
                 if (command === 'set') {
+                    const cmdResult = await deviceManager.setDeviceState(deviceId, JSON.parse(message));
+                    mqttClient.publish(`${mqttBaseTopic}/${deviceId}/status`, JSON.stringify(cmdResult));
+                }
+
+                if (command === 'hoass/temp/set') {
+                    var temp = parseInt(message, 10)
+                    message = `{ "SetTem": ${temp} }`
+                    const cmdResult = await deviceManager.setDeviceState(deviceId, JSON.parse(message));
+                    mqttClient.publish(`${mqttBaseTopic}/${deviceId}/status`, JSON.stringify(cmdResult));
+                }
+
+                if (command === 'hoass/mode/set') {
+                    if (message == "off") {
+                        message = '{"Pow": 0}'
+                    } else if ( message == "auto") {
+                        message = '{"Pow": 1, "Mod": 0}'
+                    } else if ( message == "cool") {
+                        message = '{"Pow": 1, "Mod": 1}'
+                    } else if ( message == "dry") {
+                        message = '{"Pow": 1, "Mod": 2}'
+                    } else if ( message == "fan_only") {
+                        message = '{"Pow": 1, "Mod": 3}'
+                    } else if ( message == "heat") {
+                        message = '{"Pow": 1, "Mod": 4}'
+                    } else {
+                        logger.info(`Got unexpected message: '${message}'`)
+                        return
+                    }
                     const cmdResult = await deviceManager.setDeviceState(deviceId, JSON.parse(message));
                     mqttClient.publish(`${mqttBaseTopic}/${deviceId}/status`, JSON.stringify(cmdResult));
                 }

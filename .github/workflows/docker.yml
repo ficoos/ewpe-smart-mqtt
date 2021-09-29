@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: demydiuk/ewpe-smart-mqtt
+  IMAGE_NAME: ficoos/ewpe-smart-mqtt
 
 
 jobs:

@@ -59,10 +59,10 @@ mqttClient.on('connect', () => {
             case 2:
                 hoassMode = "dry"
                 break
-            case 4:
+            case 3:
                 hoassMode = "fan_only"
                 break
-            case 5:
+            case 4:
                 hoassMode = "heat"
                 break
             }
